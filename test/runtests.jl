@@ -1,7 +1,6 @@
 using PhiloxArrays
 using Test
 using Random123: philox
-using Plots
 #using BenchmarkTools
 
 @testset "PhiloxArrays.jl" begin
