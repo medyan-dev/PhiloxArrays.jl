@@ -74,9 +74,8 @@ Base.size(G::ComplexGaussianVectorField) = G.size
 Base.IndexStyle(::Type{<:ComplexGaussianVectorField}) = IndexLinear()
 
 function Base.getindex(G::ComplexGaussianVectorField, i::Integer)::SVector{3,Complex{Float32}}
-    #p1 = p(G.key,UInt128(G.ctr)<<64 | (i%UInt64)<<1)
     p1 = p(G.key, (i%UInt64)<<1, G.ctr1)
-    p2 = p(G.key,(i%UInt64)<<1 | UInt64(1), G.ctr1)
+    p2 = p(G.key, (i%UInt64)<<1 | UInt64(1), G.ctr1)
     g1 = boxmuller(Float32,p1[1],p1[2])
     g2 = boxmuller(Float32,p1[3],p1[4])
     g3 = boxmuller(Float32,p2[1],p2[2])
