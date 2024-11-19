@@ -64,12 +64,19 @@ function boxmuller(Ftype::Type{<:Real},u1::UInt32,u2::UInt32)::SVector{2,Ftype}
     sqrt(-2*log(u01(Ftype,u2))).*sincospi(uneg11(Ftype,u1))
 end
 
+"""
+Struct for generating N array of 3D vectors whose elements are complex, normally distributed
+pseudorandom, complex Float32 numbers. N is a tuple with the dimensions of the array
+"""
 struct ComplexGaussianVectorField{N} <: AbstractArray{SVector{3,Complex{Float32}},N}
     size::NTuple{N,Int64}
     key::UInt64
     ctr1::UInt64
 end
 
+"""
+Define methods for struct
+"""
 Base.size(G::ComplexGaussianVectorField) = G.size
 Base.IndexStyle(::Type{<:ComplexGaussianVectorField}) = IndexLinear()
 
@@ -80,22 +87,6 @@ function Base.getindex(G::ComplexGaussianVectorField, i::Integer)::SVector{3,Com
     g2 = boxmuller(Float32,p1[3],p1[4])
     g3 = boxmuller(Float32,p2[1],p2[2])
     SA[g1[1]+g1[2]im, g2[1]+g2[2]im, g3[1]+g3[2]im]
-end
-
-
-
-
-
-"""
-Takes two normally distributed numbers and converts into a single complex normally distributed number
-"""
-function complex_normal()
-end
-
-"""
-Takes two raw philox arrays and outputs a complex, normally distributed vector field
-"""
-function complex_normal_field_array()
 end
 
 end
