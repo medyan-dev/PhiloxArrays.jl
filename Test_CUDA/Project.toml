@@ -1,0 +1,5 @@
+[deps]
+AbstractFFTs = "621f4979-c628-5d54-868e-fcf4e3e8185c"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
+PhiloxArrays = "508b8dab-2d72-462c-b792-eb7ae329b456"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
