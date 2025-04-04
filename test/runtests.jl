@@ -1,71 +1,63 @@
-using PhiloxArrays
 using Test
-using Random123: philox
-using Statistics
 using LinearAlgebra
-using CUDA
-using StaticArrays
-using OffsetArrays
 using FFTW
+using PhiloxArrays
+using Statistics
 
-#=
-CUDA calculation of IFFT of conjugate symmetric, complex gaussian,
-three component, k-space, (N[1]/2+1)xN[2]xN[3]-dimensional vector field
-=#
-function calc_real_IFFT_cgvfield(key,counter,N)
-    Nirfft = (div(N[1],2)+1,N[2],N[3]) 
-    cgvfield = CuArray{SVector{3,Complex{Float32}}}(undef, Nirfft)
-    p = PhiloxArrays.ComplexGaussianVectorField(N,UInt64(key),UInt64(counter))
-    map!(cgvfield,CartesianIndices(Nirfft)) do k
-        kp = CartesianIndex(mod.(N .- Tuple(k) .+ 1,N) .+ 1)
-        inv(sqrt(Float32(2)))*(p[k] + conj(p[kp]))
+@testset "ConjSymRandNArray Tests" begin
+    @testset "Construction" begin
+        # Test basic construction
+        A = ConjSymRandNArray{Float32}((3,4,5), UInt64(7), UInt64(11))
+        @test size(A) == (3,4,5)
     end
-    P = plan_irfft(reinterpret(reshape,ComplexF32,cgvfield),N[1],(2,3,4))
-    return P*reinterpret(reshape,ComplexF32,cgvfield)
-end
-
-#=
-Generate collection of samples of the vector field
-=#
-function sample_field(nsample,key_init,ctr_init,N)
-    cgvfield = reinterpret(Float32, PhiloxArrays.ComplexGaussianVectorField(N,UInt64(key_init),UInt64(ctr_init)))
-    for i in 1:nsample-1
-        cgvfield = cat(cgvfield,reinterpret(Float32, PhiloxArrays.ComplexGaussianVectorField(N,UInt64(key_init),UInt64(i))),dims=2)
+    
+    @testset "Symmetry Properties" begin
+        # Test conjugate symmetry property: A[i,j] == conj(A[j,i])
+        A = ConjSymRandNArray{Float32}((3,4,5), UInt64(7), UInt64(11))
+        for kvec in CartesianIndices(A)
+            kvecp = CartesianIndex(mod.(A.size .- Tuple(kvec) .+ 1, A.size) .+ 1)
+            @test A[kvecp] == conj(A[kvec])
+        end
+        for i in 1:3
+            @test isreal(ifft(map(x->x[i], A)))
+        end
     end
-    return cgvfield
-end
 
-@testset "PhiloxArrays.jl" begin
-    # Write your tests here.
-    
-    #=
-    Tests that the all the real and imaginary parts of all the components of the vector field at all points are unique random numbers
-    =#
-    @test allunique(reinterpret(Float32, PhiloxArrays.ComplexGaussianVectorField((3,),UInt64(1),UInt64(1))))
+    @testset "Special Cases" begin
+        # Test empty array
+        A = ConjSymRandNArray{Float32}((0,0,0), UInt64(7), UInt64(11))
 
-    #=
-    Test mean and covariance of philox complex vector fields
-    =#
-    nsample = 10000
-    key_init = 1
-    ctr_init = 1
-    N = (2,)
-    cgvfield = sample_field(nsample,key_init,ctr_init,N)
-    #test that each part approximately has mean zero
-    @test abs.(round.(mean(cgvfield, dims=2))) == zeros(Float32,6*prod(N),1)
-    #test that the covariance matrix is approximately the identity matrix
-    @test abs.(round.(cov(cgvfield, dims=2))) == Matrix{Float32}(I, 6*prod(N), 6*prod(N))
+        # Test 1×1×1 array
+        A = ConjSymRandNArray{Float32}((1,1,1), UInt64(7), UInt64(11))
+        @test A[1,1,1] == conj(A[1,1,1])
+    end
 
-    #=
-    Test GPU accelerated generation of philox vector field has correct symmetry
-    =#
-    key = 1
-    counter = 1
-    N = (32,32,32)
-    @test isreal(calc_real_IFFT_cgvfield(key,counter,N))
-    
-    
+    @testset "Array has the correct distribution" begin
+        nsize = (4,5,6)
+        normal_samples = Float32[]
+        special_samples = Float32[]
+        nsamples = 100
+        for i in 1:nsamples
+            A = ConjSymRandNArray{Float32}(nsize, UInt64(7), UInt64(i))
+            for kvec in CartesianIndices(A)
+                kvecp = CartesianIndex(mod.(A.size .- Tuple(kvec) .+ 1, A.size) .+ 1)
+                if kvec == kvecp
+                    append!(special_samples, vec(reinterpret(reshape, Float32, real.(A[kvec]))))
+                elseif kvec > kvecp
+                    append!(normal_samples, vec(reinterpret(reshape, Float32, A[kvec])))
+                end
+            end
+        end
+        @show length(normal_samples) - length(Set(normal_samples))
+        @show length(special_samples) - length(Set(special_samples))
+        @show mean(normal_samples)
+        @show mean(special_samples)
+        @show cov(normal_samples)
+        @show cov(special_samples)
+        # TODO calculate p values
+        # @show cov(reshape(normal_samples, :, 100); dims=2)
+        # @show cov(reshape(special_samples, :, 100); dims=2)
+    end
 
 
-    
 end

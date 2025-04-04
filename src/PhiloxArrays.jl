@@ -1,7 +1,7 @@
 module PhiloxArrays
 using Random123: philox
 using StaticArrays
-export RawPhiloxArray
+export ConjSymRandNArray
 
 """
     RawPhiloxArray{N} <: AbstractArray{SVector{4,UInt32},N}
@@ -77,6 +77,41 @@ function Base.getindex(G::ComplexGaussianVectorField, i::Integer)::SVector{3,Com
     g2 = boxmuller(Float32,p1[3],p1[4])
     g3 = boxmuller(Float32,p2[1],p2[2])
     SA[g1[1]+g1[2]im, g2[1]+g2[2]im, g3[1]+g3[2]im]
+end
+
+"""
+Struct for generating N array of 3D vectors whose elements are complex, normally distributed
+pseudorandom, complex Float32 numbers. N is a tuple with the dimensions of the array
+"""
+struct ConjSymRandNArray{F, N} <: AbstractArray{SVector{N, Complex{F}}, N}
+    size::NTuple{N, Int64}
+    key::UInt64
+    ctr1::UInt64
+end
+
+ConjSymRandNArray{F}(size::NTuple{N, Integer}, key, ctr1) where {N, F} = ConjSymRandNArray{F, N}(size, key, ctr1)
+
+Base.size(G::ConjSymRandNArray) = G.size
+
+function Base.getindex(G::ConjSymRandNArray{Float32, 3}, kvec::Vararg{Int,3})::SVector{3, Complex{Float32}}
+    kvecp = mod.(G.size .- Tuple(kvec) .+ 1, G.size) .+ 1
+    i = 1 + (kvec[1]-1) + (kvec[2]-1)*G.size[1] + (kvec[3]-1)*G.size[1]*G.size[2]
+    ip = 1 + (kvecp[1]-1) + (kvecp[2]-1)*G.size[1] + (kvecp[3]-1)*G.size[1]*G.size[2]
+    p1 = p(G.key, (i%UInt64)<<1, G.ctr1)
+    p2 = p(G.key, (i%UInt64)<<1 | UInt64(1), G.ctr1)
+    g1 = boxmuller(Float32,p1[1],p1[2])
+    g2 = boxmuller(Float32,p1[3],p1[4])
+    g3 = boxmuller(Float32,p2[1],p2[2])
+    p1p = p(G.key, (ip%UInt64)<<1, G.ctr1)
+    p2p = p(G.key, (ip%UInt64)<<1 | UInt64(1), G.ctr1)
+    g1p = boxmuller(Float32,p1p[1],p1p[2])
+    g2p = boxmuller(Float32,p1p[3],p1p[4])
+    g3p = boxmuller(Float32,p2p[1],p2p[2])
+    inv(sqrt(Float32(2))) * SA[
+        g1[1] + g1p[1] + (g1[2] - g1p[2])im,
+        g2[1] + g2p[1] + (g2[2] - g2p[2])im,
+        g3[1] + g3p[1] + (g3[2] - g3p[2])im,
+    ]
 end
 
 end
