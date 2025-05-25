@@ -114,4 +114,27 @@ function Base.getindex(G::ConjSymRandNArray{Float32, 3}, kvec::Vararg{Int,3})::S
     ]
 end
 
+function Base.getindex(G::ConjSymRandNArray{Float64, 3}, kvec::Vararg{Int,3})::SVector{3, Complex{Float64}}
+    kvecp = mod.(G.size .- Tuple(kvec) .+ 1, G.size) .+ 1
+    i = 1 + (kvec[1]-1) + (kvec[2]-1)*G.size[1] + (kvec[3]-1)*G.size[1]*G.size[2]
+    ip = 1 + (kvecp[1]-1) + (kvecp[2]-1)*G.size[1] + (kvecp[3]-1)*G.size[1]*G.size[2]
+    p1 = p(G.key, (i%UInt64)<<1, G.ctr1)
+    p2 = p(G.key, (i%UInt64)<<1 | UInt64(1), G.ctr1)
+    p3 = p(G.key, (i%UInt64)<<2 | UInt64(1), G.ctr1)
+    g1 = boxmuller(Float64,(p1[1]%UInt64)<<32 + p1[2]%UInt64,(p1[3]%UInt64)<<32 + p1[4]%UInt64)
+    g2 = boxmuller(Float64,(p2[1]%UInt64)<<32 + p2[2]%UInt64,(p2[3]%UInt64)<<32 + p2[4]%UInt64)
+    g3 = boxmuller(Float64,(p3[1]%UInt64)<<32 + p3[2]%UInt64,(p3[3]%UInt64)<<32 + p3[4]%UInt64)
+    p1p = p(G.key, (ip%UInt64)<<1, G.ctr1)
+    p2p = p(G.key, (ip%UInt64)<<1 | UInt64(1), G.ctr1)
+    p3p = p(G.key, (ip%UInt64)<<2 | UInt64(1), G.ctr1)
+    g1p = boxmuller(Float64,(p1p[1]%UInt64)<<32 + p1p[2]%UInt64,(p1p[3]%UInt64)<<32 + p1p[4]%UInt64)
+    g2p = boxmuller(Float64,(p2p[1]%UInt64)<<32 + p2p[2]%UInt64,(p2p[3]%UInt64)<<32 + p2p[4]%UInt64)
+    g3p = boxmuller(Float64,(p3p[1]%UInt64)<<32 + p3p[2]%UInt64,(p3p[3]%UInt64)<<32 + p3p[4]%UInt64)
+    inv(sqrt(Float32(2))) * SA[
+        g1[1] + g1p[1] + (g1[2] - g1p[2])im,
+        g2[1] + g2p[1] + (g2[2] - g2p[2])im,
+        g3[1] + g3p[1] + (g3[2] - g3p[2])im,
+    ]
+end
+
 end

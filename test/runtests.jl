@@ -36,7 +36,7 @@ using Statistics
         nsize = (4,5,6)
         normal_samples = Float32[]
         special_samples = Float32[]
-        nsamples = 100
+        nsamples = 1001
         for i in 1:nsamples
             A = ConjSymRandNArray{Float32}(nsize, UInt64(7), UInt64(i))
             for kvec in CartesianIndices(A)
@@ -59,5 +59,58 @@ using Statistics
         # @show cov(reshape(special_samples, :, 100); dims=2)
     end
 
+    @testset "Construction" begin
+        # Test basic construction
+        A = ConjSymRandNArray{Float64}((3,4,5), UInt64(7), UInt64(11))
+        @test size(A) == (3,4,5)
+    end
+    
+    @testset "Symmetry Properties" begin
+        # Test conjugate symmetry property: A[i,j] == conj(A[j,i])
+        A = ConjSymRandNArray{Float64}((3,4,5), UInt64(7), UInt64(11))
+        for kvec in CartesianIndices(A)
+            kvecp = CartesianIndex(mod.(A.size .- Tuple(kvec) .+ 1, A.size) .+ 1)
+            @test A[kvecp] == conj(A[kvec])
+        end
+        for i in 1:3
+            @test isreal(ifft(map(x->x[i], A)))
+        end
+    end
+
+    @testset "Special Cases" begin
+        # Test empty array
+        A = ConjSymRandNArray{Float64}((0,0,0), UInt64(7), UInt64(11))
+
+        # Test 1×1×1 array
+        A = ConjSymRandNArray{Float64}((1,1,1), UInt64(7), UInt64(11))
+        @test A[1,1,1] == conj(A[1,1,1])
+    end
+
+    @testset "Array has the correct distribution" begin
+        nsize = (4,5,6)
+        normal_samples = Float64[]
+        special_samples = Float64[]
+        nsamples = 100
+        for i in 1:nsamples
+            A = ConjSymRandNArray{Float64}(nsize, UInt64(7), UInt64(i))
+            for kvec in CartesianIndices(A)
+                kvecp = CartesianIndex(mod.(A.size .- Tuple(kvec) .+ 1, A.size) .+ 1)
+                if kvec == kvecp
+                    append!(special_samples, vec(reinterpret(reshape, Float64, real.(A[kvec]))))
+                elseif kvec > kvecp
+                    append!(normal_samples, vec(reinterpret(reshape, Float64, A[kvec])))
+                end
+            end
+        end
+        @show length(normal_samples) - length(Set(normal_samples))
+        @show length(special_samples) - length(Set(special_samples))
+        @show mean(normal_samples)
+        @show mean(special_samples)
+        @show cov(normal_samples)
+        @show cov(special_samples)
+        # TODO calculate p values
+        # @show cov(reshape(normal_samples, :, 100); dims=2)
+        # @show cov(reshape(special_samples, :, 100); dims=2)
+    end
 
 end
