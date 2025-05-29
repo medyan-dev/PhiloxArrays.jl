@@ -66,8 +66,6 @@ end
         @show mean(special_samples)
         @show cov(normal_samples)
         @show cov(special_samples)
-        # @show cov(reshape(normal_samples, :, 100); dims=2)
-        # @show cov(reshape(special_samples, :, 100); dims=2)
         
         #add jittering to remove ties
         @show length(jitter(normal_samples)) - length(Set(jitter(normal_samples)))
@@ -131,8 +129,6 @@ end
         @show mean(special_samples)
         @show cov(normal_samples)
         @show cov(special_samples)
-        # @show cov(reshape(normal_samples, :, 100); dims=2)
-        # @show cov(reshape(special_samples, :, 100); dims=2)
         
         #add jittering to remove ties
         @show length(jitter(normal_samples)) - length(Set(jitter(normal_samples)))
@@ -145,21 +141,3 @@ end
     end
 
 end
-
-        #writedlm("nonunique_indices.txt", setdiff(collect(1:length(normal_samples)),unique(i -> normal_samples[i], 1:length(normal_samples))))
-        #nonunique_indices = setdiff(collect(1:length(normal_samples)),unique(i -> normal_samples[i], 1:length(normal_samples)))
-        #writedlm("nonunique_sorted.txt", sort(normal_samples[nonunique_indices]))
-
-        #writedlm("normal_samples.txt", sortperm(normal_samples))
-        #writedlm("uniqueindices.txt", unique(i -> normal_samples[i], 1:length(normal_samples)))
-        #@show normal_samples[3103],normal_samples[15849]
-
-        #jitter!(normal_samples, 0.1)
-        #jitter!(special_samples, 0.01)
-
-        #writedlm("nonunique_indices_jitter.txt", setdiff(collect(1:length(normal_samples_jittered)),unique(i -> normal_samples_jittered[i], 1:length(normal_samples_jittered))))
-        #nonunique_indices = setdiff(collect(1:length(normal_samples_jittered)),unique(i -> normal_samples_jittered[i], 1:length(normal_samples_jittered)))
-        #writedlm("nonunique_sorted_jitter.txt", sort(normal_samples_jittered[nonunique_indices]))
-
-        #writedlm("normal_samples_jitter.txt", sortperm(normal_samples))
-        #@show normal_samples[3103],normal_samples[15849]
