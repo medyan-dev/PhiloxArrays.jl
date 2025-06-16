@@ -130,7 +130,7 @@ function Base.getindex(G::ConjSymRandNArray{Float64, 3}, kvec::Vararg{Int,3})::S
     g1p = boxmuller(Float64,(p1p[1]%UInt64)<<32 + p1p[2]%UInt64,(p1p[3]%UInt64)<<32 + p1p[4]%UInt64)
     g2p = boxmuller(Float64,(p2p[1]%UInt64)<<32 + p2p[2]%UInt64,(p2p[3]%UInt64)<<32 + p2p[4]%UInt64)
     g3p = boxmuller(Float64,(p3p[1]%UInt64)<<32 + p3p[2]%UInt64,(p3p[3]%UInt64)<<32 + p3p[4]%UInt64)
-    inv(sqrt(Float32(2))) * SA[
+    inv(sqrt(Float64(2))) * SA[
         g1[1] + g1p[1] + (g1[2] - g1p[2])im,
         g2[1] + g2p[1] + (g2[2] - g2p[2])im,
         g3[1] + g3p[1] + (g3[2] - g3p[2])im,
