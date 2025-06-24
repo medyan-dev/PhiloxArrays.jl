@@ -24,6 +24,8 @@ Base.getindex(P::RawPhiloxArray, i::Integer) = p(P.key, i%UInt64, P.ctr1)
 
 """
 Convert UInt32 into a float of type Ftype in [-1,1]
+Ported from Random123:
+https://github.com/DEShawResearch/random123/blob/v1.14.0/include/Random123/uniform.hpp#L206
 """
 function uneg11(Ftype::Type{<:Real}, in::UInt32)::Ftype
     fma(Ftype(in%Int32), Ftype(2)^(-31), Ftype(2)^(-32))
@@ -31,6 +33,8 @@ end
 
 """
 Convert UInt64 into a float of type Ftype in [-1,1]
+Ported from Random123:
+https://github.com/DEShawResearch/random123/blob/v1.14.0/include/Random123/uniform.hpp#L206
 """
 function uneg11(Ftype::Type{<:Real}, in::UInt64)::Ftype
     fma(Ftype(in%Int64), Ftype(2)^(-63), Ftype(2)^(-64))
@@ -38,6 +42,8 @@ end
 
 """
 Convert UInt32 into a float of type Ftype in (0,1]
+Ported from Random123:
+https://github.com/DEShawResearch/random123/blob/v1.14.0/include/Random123/uniform.hpp#L175
 """
 function u01(Ftype::Type{<:Real}, in::UInt32)::Ftype
     fma(Ftype(in), Ftype(2)^(-32), Ftype(2)^(-33))
@@ -45,6 +51,8 @@ end
 
 """
 Convert UInt64 into a float of type Ftype in (0,1]
+Ported from Random123:
+https://github.com/DEShawResearch/random123/blob/v1.14.0/include/Random123/uniform.hpp#L175
 """
 function u01(Ftype::Type{<:Real}, in::UInt64)::Ftype
     fma(Ftype(in), Ftype(2)^(-64), Ftype(2)^(-65))
@@ -52,6 +60,8 @@ end
 
 """
 Takes in two uniformly distributed UInt32 and outputs two normally distributed floats of type Ftype.
+Ported from Random123:
+https://github.com/DEShawResearch/random123/blob/v1.14.0/include/Random123/boxmuller.hpp#L113
 """
 function boxmuller(Ftype::Type{<:Real}, u1::T, u2::T)::SVector{2,Ftype} where {T <: Union{UInt32, UInt64}}
     sqrt(-2*log(u01(Ftype,u2))).*sincospi(uneg11(Ftype,u1))
